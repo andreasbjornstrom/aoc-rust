@@ -19,6 +19,23 @@ struct Elf {
 }
 
 fn main() {
+    let mut totals = fs::read_to_string("large_file_day_1")
+        .unwrap()
+        .split("\n\n")
+        .map(|s|
+            s.lines()
+                .map(|line|
+                    line.parse::<i32>().unwrap()
+                )
+                .sum())
+        .collect::<Vec<i32>>();
+    totals.sort_by(|a, b| b.cmp(a));
+
+    println!("Highest: {:?}", totals.get(0));
+    println!("Three highest: {:?}", totals.iter().take(3).sum::<i32>())
+}
+
+fn old_main() {
     let winner = find_winner(&read_test_file());
     assert!(winner.sum.eq(&24000));
 
@@ -33,7 +50,7 @@ fn sum_of_three_top(content: &String) -> i32 {
     let mut sums: Vec<i32> = parse_rows(content).into_iter()
         .map(|row| -> i32 { sum_row(&row) })
         .collect();
-    sums.sort_by(|a, b| b.partial_cmp(a).unwrap());
+    sums.sort_by(|a, b| b.cmp(a));
 
     return sums.get(0).unwrap() + sums.get(1).unwrap() + sums.get(2).unwrap();
 }
@@ -50,8 +67,7 @@ fn download_content_for_day(day: i8) -> String {
         println!("Using already downloaded file..");
         data = file.unwrap()
     }
-    let data_as_string = str::from_utf8(&data).map(String::from).unwrap();
-    return data_as_string;
+    return str::from_utf8(&data).map(String::from).unwrap();
 }
 
 fn download(day: i8) -> Vec<u8> {
