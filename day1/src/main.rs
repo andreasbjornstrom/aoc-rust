@@ -18,7 +18,6 @@ struct Elf {
     sum: i32,
 }
 
-// https://adventofcode.com/2022/day/1/input
 fn main() {
     let winner = find_winner(&read_test_file());
     assert!(winner.sum.eq(&24000));
