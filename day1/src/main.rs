@@ -22,7 +22,7 @@ fn main() {
     let winner = find_winner(&read_test_file());
     assert!(winner.sum.eq(&24000));
 
-    let content = download_content_for_day("1".to_string());
+    let content = download_content_for_day(1);
     let winner = find_winner(&content);
     debug(&winner);
     let top_three = sum_of_three_top(&content);
@@ -30,20 +30,35 @@ fn main() {
 }
 
 fn sum_of_three_top(content: &String) -> i32 {
-    let mut sums :Vec<i32> = parse_rows(content).into_iter()
-        .map(|row| -> i32 { sum_row(&row)})
+    let mut sums: Vec<i32> = parse_rows(content).into_iter()
+        .map(|row| -> i32 { sum_row(&row) })
         .collect();
-    sums.sort_by(|a, b|  b.partial_cmp(a).unwrap());
+    sums.sort_by(|a, b| b.partial_cmp(a).unwrap());
 
-    return sums.get(0).unwrap() + sums.get(1).unwrap() + sums.get(2).unwrap()
+    return sums.get(0).unwrap() + sums.get(1).unwrap() + sums.get(2).unwrap();
 }
 
-// session=53616c7465645f5fd106dc0e23e58fda43ffdceb8f92ec17e69b4a0f4c52330f1df4a4ca19af291194174a8698212c268431274770135032c992ea8b9f2de51e
-fn download_content_for_day(day1: String) -> String {
+fn download_content_for_day(day: i8) -> String {
     let mut data = Vec::new();
+    let file_name = format! {"large_file_day_{day}"};
+    let file = fs::read(&file_name);
+    if file.is_err() {
+        println!("file not found.. downloading it");
+        data = download(day);
+        write_to_file(&data, &file_name);
+    } else {
+        println!("Using already downloaded file..");
+        data = file.unwrap()
+    }
+    let data_as_string = str::from_utf8(&data).map(String::from).unwrap();
+    return data_as_string;
+}
+
+fn download(day: i8) -> Vec<u8> {
     let mut handle = Easy::new();
-    handle.url(&*format! {"https://adventofcode.com/2022/day/{day1}/input"}).unwrap();
-    handle.http_headers(configureHeaders()).unwrap();
+    let mut data = Vec::new();
+    handle.url(&*format! {"https://adventofcode.com/2022/day/{day}/input"}).unwrap();
+    handle.http_headers(configure_headers()).unwrap();
     {
         let mut transfer = handle.transfer();
         transfer.write_function(|new_data| {
@@ -52,11 +67,14 @@ fn download_content_for_day(day1: String) -> String {
         }).unwrap();
         transfer.perform().unwrap();
     }
-    println!("{:?}", data);
-    return str::from_utf8(&data).map(String::from).unwrap();
+    return data;
 }
 
-fn configureHeaders() -> List {
+fn write_to_file(data: &Vec<u8>, file_name: &String) {
+    fs::write(file_name, data).expect("Wasn't able to save file");
+}
+
+fn configure_headers() -> List {
     let mut headers = List::new();
     let cookie = fs::read_to_string("cookie").expect("TODO: panic message");
     headers.append(&*format!("Cookie: {}", cookie)).expect("TODO: panic message");
