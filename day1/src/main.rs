@@ -18,7 +18,6 @@ struct Elf {
 }
 
 // https://adventofcode.com/2022/day/1/input
-// #[tokio::main(flavor = "current_thread")]
 fn main() {
     let mut content = read_file();
     if env::args().len() > 1 {
@@ -31,22 +30,20 @@ fn main() {
 
 // session=53616c7465645f5fd106dc0e23e58fda43ffdceb8f92ec17e69b4a0f4c52330f1df4a4ca19af291194174a8698212c268431274770135032c992ea8b9f2de51e
 fn download_content_for_day(day1: String) -> String {
+    let mut data = Vec::new();
     let mut handle = Easy::new();
-    let mut buf = Arc::new(Vec::new());
     handle.url(&*format! {"https://adventofcode.com/2022/day/{day1}/input"}).unwrap();
     handle.http_headers(configureHeaders()).unwrap();
-    handle.write_function(| data| {
-        buf.extend_from_slice(data);
-        //println!("{}", str::from_utf8(data).unwrap());
-        // &response.push_str(str::from_utf8(data).unwrap());
-        Ok(data.len())
-    }).unwrap();
-
-    handle.perform().unwrap();
-
-//    debug(&buf);
-    //   println!("{}", handle.response_code().unwrap());
-    return str::from_utf8(&buf).map(String::from).unwrap()
+    {
+        let mut transfer = handle.transfer();
+        transfer.write_function(|new_data| {
+            data.extend_from_slice(new_data);
+            Ok(new_data.len())
+        }).unwrap();
+        transfer.perform().unwrap();
+    }
+    println!("{:?}", data);
+    return str::from_utf8(&data).map(String::from).unwrap();
 }
 
 fn configureHeaders() -> List {
@@ -62,11 +59,11 @@ fn find_winner(content: String) -> Elf {
         .map(|prylar: String| -> Vec<i32>{
             prylar.split('\n')
                 .map(String::from)
-                .map(|s: String| -> i32 { s.parse::<i32>().unwrap() })
+                .filter(| s| -> bool {!s.is_empty()})
+                .map(|s: String| -> i32 { s.parse::<i32>().expect(" panic?! wtf?") })
                 .collect()
         })
         .collect();
-    debug(&rows);
 
     let mut winner: Elf = Elf { index: -1, sum: 0 };
 
