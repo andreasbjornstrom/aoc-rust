@@ -3,6 +3,7 @@ extern crate core;
 use std::any::Any;
 use std::fmt::{Debug, format};
 use std::{env, fs};
+use std::borrow::Borrow;
 use std::fs::{copy, File};
 use std::str;
 use std::i32;
@@ -19,13 +20,23 @@ struct Elf {
 
 // https://adventofcode.com/2022/day/1/input
 fn main() {
-    let mut content = read_file();
-    if env::args().len() > 1 {
-        content = download_content_for_day("1".to_string())
-    }
+    let winner = find_winner(&read_test_file());
+    assert!(winner.sum.eq(&24000));
 
-    let winner = find_winner(content);
-    debug(&winner)
+    let content = download_content_for_day("1".to_string());
+    let winner = find_winner(&content);
+    debug(&winner);
+    let top_three = sum_of_three_top(&content);
+    debug(&top_three)
+}
+
+fn sum_of_three_top(content: &String) -> i32 {
+    let mut sums :Vec<i32> = parse_rows(content).into_iter()
+        .map(|row| -> i32 { sum_row(&row)})
+        .collect();
+    sums.sort_by(|a, b|  b.partial_cmp(a).unwrap());
+
+    return sums.get(0).unwrap() + sums.get(1).unwrap() + sums.get(2).unwrap()
 }
 
 // session=53616c7465645f5fd106dc0e23e58fda43ffdceb8f92ec17e69b4a0f4c52330f1df4a4ca19af291194174a8698212c268431274770135032c992ea8b9f2de51e
@@ -53,17 +64,8 @@ fn configureHeaders() -> List {
     headers
 }
 
-fn find_winner(content: String) -> Elf {
-    let rows: Vec<Vec<i32>> = content.split("\n\n")
-        .map(String::from)
-        .map(|prylar: String| -> Vec<i32>{
-            prylar.split('\n')
-                .map(String::from)
-                .filter(| s| -> bool {!s.is_empty()})
-                .map(|s: String| -> i32 { s.parse::<i32>().expect(" panic?! wtf?") })
-                .collect()
-        })
-        .collect();
+fn find_winner(content: &String) -> Elf {
+    let rows = parse_rows(content);
 
     let mut winner: Elf = Elf { index: -1, sum: 0 };
 
@@ -75,6 +77,20 @@ fn find_winner(content: String) -> Elf {
         }
     }
     return winner;
+}
+
+fn parse_rows(content: &String) -> Vec<Vec<i32>> {
+    let rows: Vec<Vec<i32>> = content.split("\n\n")
+        .map(String::from)
+        .map(|prylar: String| -> Vec<i32>{
+            prylar.split('\n')
+                .map(String::from)
+                .filter(|s| -> bool { !s.is_empty() })
+                .map(|s: String| -> i32 { s.parse::<i32>().expect(" panic?! wtf?") })
+                .collect()
+        })
+        .collect();
+    rows
 }
 
 fn sum_row(row: &Vec<i32>) -> i32 {
@@ -89,7 +105,7 @@ fn debug<T: Any + Debug>(rows: &T) {
     println!("{:?}", rows);
 }
 
-fn read_file() -> String {
+fn read_test_file() -> String {
     let file_path = "src/resources/input";
     let content = fs::read_to_string((file_path))
         .expect("Should have been able to read the file?!");
