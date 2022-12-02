@@ -1,16 +1,12 @@
 extern crate core;
 
-use std::any::Any;
-use std::fmt::{Debug, format};
-use std::{env, fs};
-use std::borrow::Borrow;
-use std::fs::{copy, File};
-use std::str;
-use std::i32;
-use std::io::{BufRead, Read, stdout, Write};
-use std::sync::Arc;
-use std::time::Duration;
 use curl::easy::{Easy, List};
+use std::any::Any;
+use std::fmt::{Debug};
+use std::i32;
+use std::io::{stdout, BufRead, Read};
+use std::str;
+use std::{fs};
 
 #[derive(Debug)]
 struct Elf {
@@ -19,19 +15,14 @@ struct Elf {
 }
 
 fn main() {
-    let mut totals = fs::read_to_string("large_file_day_1")
-        .unwrap()
+    let mut totals = aoc::get_aoc_file(1)
+        //    let mut totals = include_str!("../large_file_day_1")
         .split("\n\n")
-        .map(|s|
-            s.lines()
-                .map(|line|
-                    line.parse::<i32>().unwrap()
-                )
-                .sum())
+        .map(|s| s.lines().map(|line| line.parse::<i32>().unwrap()).sum())
         .collect::<Vec<i32>>();
     totals.sort_by(|a, b| b.cmp(a));
 
-    println!("Highest: {:?}", totals.get(0));
+    println!("Highest: {:?}", totals[0]);
     println!("Three highest: {:?}", totals.iter().take(3).sum::<i32>())
 }
 
@@ -47,7 +38,8 @@ fn old_main() {
 }
 
 fn sum_of_three_top(content: &String) -> i32 {
-    let mut sums: Vec<i32> = parse_rows(content).into_iter()
+    let mut sums: Vec<i32> = parse_rows(content)
+        .into_iter()
         .map(|row| -> i32 { sum_row(&row) })
         .collect();
     sums.sort_by(|a, b| b.cmp(a));
@@ -73,14 +65,18 @@ fn download_content_for_day(day: i8) -> String {
 fn download(day: i8) -> Vec<u8> {
     let mut handle = Easy::new();
     let mut data = Vec::new();
-    handle.url(&*format! {"https://adventofcode.com/2022/day/{day}/input"}).unwrap();
+    handle
+        .url(&*format! {"https://adventofcode.com/2022/day/{day}/input"})
+        .unwrap();
     handle.http_headers(configure_headers()).unwrap();
     {
         let mut transfer = handle.transfer();
-        transfer.write_function(|new_data| {
-            data.extend_from_slice(new_data);
-            Ok(new_data.len())
-        }).unwrap();
+        transfer
+            .write_function(|new_data| {
+                data.extend_from_slice(new_data);
+                Ok(new_data.len())
+            })
+            .unwrap();
         transfer.perform().unwrap();
     }
     return data;
@@ -92,8 +88,10 @@ fn write_to_file(data: &Vec<u8>, file_name: &String) {
 
 fn configure_headers() -> List {
     let mut headers = List::new();
-    let cookie = fs::read_to_string("cookie").expect("TODO: panic message");
-    headers.append(&*format!("Cookie: {}", cookie)).expect("TODO: panic message");
+    let cookie = fs::read_to_string("../../cookie").expect("TODO: panic message");
+    headers
+        .append(&*format!("Cookie: {}", cookie))
+        .expect("TODO: panic message");
     headers
 }
 
@@ -102,21 +100,27 @@ fn find_winner(content: &String) -> Elf {
 
     let mut winner: Elf = Elf { index: -1, sum: 0 };
 
+    for (i, value) in rows.iter().enumerate() {}
     for i in 0..rows.len() {
         let row = rows.get(i).unwrap();
         let sum = sum_row(row);
         if sum > winner.sum {
-            winner = Elf { index: i as i32, sum }
+            winner = Elf {
+                index: i as i32,
+                sum,
+            }
         }
     }
     return winner;
 }
 
 fn parse_rows(content: &String) -> Vec<Vec<i32>> {
-    let rows: Vec<Vec<i32>> = content.split("\n\n")
+    let rows: Vec<Vec<i32>> = content
+        .split("\n\n")
         .map(String::from)
-        .map(|prylar: String| -> Vec<i32>{
-            prylar.split('\n')
+        .map(|prylar: String| -> Vec<i32> {
+            prylar
+                .split('\n')
                 .map(String::from)
                 .filter(|s| -> bool { !s.is_empty() })
                 .map(|s: String| -> i32 { s.parse::<i32>().expect(" panic?! wtf?") })
@@ -140,8 +144,8 @@ fn debug<T: Any + Debug>(rows: &T) {
 
 fn read_test_file() -> String {
     let file_path = "src/resources/input";
-    let content = fs::read_to_string((file_path))
-        .expect("Should have been able to read the file?!");
+    let content =
+        fs::read_to_string((file_path)).expect("Should have been able to read the file?!");
     println!("file content:\n {content}");
     return content;
 }
