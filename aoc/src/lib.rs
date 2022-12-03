@@ -35,7 +35,7 @@ fn download_aoc_file(day: usize, file_name: &str) {
     let mut handle = Easy::new();
     let mut data = Vec::new();
     handle
-        .url(&*format! {"https://adventofcode.com/2022/day/{day}/input"})
+        .url(&format! {"https://adventofcode.com/2022/day/{day}/input"})
         .unwrap();
     handle.http_headers(create_headers()).unwrap();
     {

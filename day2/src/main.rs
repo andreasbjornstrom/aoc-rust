@@ -1,9 +1,10 @@
+mod game;
+
 extern crate core;
 
 use std::io::empty;
-use hands::Hands;
-
-mod hands;
+use game::hands::Hands;
+use crate::game::hands;
 
 fn main() {
     let data = "A Y
