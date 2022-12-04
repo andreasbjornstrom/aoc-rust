@@ -22,11 +22,11 @@ fn process_turn_second_part(round: Vec<&str>) -> usize {
         return 0;
     }
     let target = round[1];
-    let p1 = &hands::to_type(&round[0]);
+    let p1 = &Hands::to_type(&round[0]);
     let p2 = match target {
-        "X" => { hands::get_loosing_hand(p1) } //loose
-        "Y" => { hands::to_type(&round[0]) }// draw
-        "Z" => { hands::get_winning_hand(p1) }
+        "X" => { p1.get_loosing_hand() } //loose
+        "Y" => { Hands::to_type(&round[0]) }// draw
+        "Z" => { p1.get_winning_hand() }
         _ => panic!("unknown")
     };
     let score = count_score(p1, &p2);
@@ -51,14 +51,14 @@ fn process_turn(round: Vec<&str>) -> usize {
         return 0;
     }
     dbg!(&round);
-    return count_score(&hands::to_type(&round[0]), &hands::to_type(&round[1]));
+    return count_score(&Hands::to_type(&round[0]), &Hands::to_type(&round[1]));
 }
 
 
 fn count_score(p1: &Hands, p2: &Hands) -> usize {
     if p1 == p2 {
-        return hands::hand_value(&p1) + 3;
+        return p1.hand_value() + 3;
     }
-    let score = if &hands::get_winning_hand(p1) == p2 { 6 } else { 0 };
-    return score + hands::hand_value(p2);
+    let score = if &p1.get_winning_hand() == p2 { 6 } else { 0 };
+    return score + p2.hand_value();
 }
