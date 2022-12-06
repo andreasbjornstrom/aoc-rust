@@ -37,7 +37,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw.";
             sum += compare_groups_part2(result[i - 3], result[i - 2], result[i-1]);
         }
     }
-//    part_1();
+    part_1();
     println!("part 2. {:?}", sum)
 }
 
